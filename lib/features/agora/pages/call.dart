@@ -4,6 +4,7 @@ import 'package:agora_rtc_engine/rtc_engine.dart';
 import 'package:agora_rtc_engine/rtc_local_view.dart' as RtcLocalView;
 import 'package:agora_rtc_engine/rtc_remote_view.dart' as RtcRemoteView;
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 
 import '../utils/settings.dart';
 
@@ -14,8 +15,15 @@ class CallPage extends StatefulWidget {
   /// non-modifiable client role of the page
   final ClientRole role;
 
+  final String token;
+
   /// Creates a call page with given channel name.
-  const CallPage({Key key, this.channelName, this.role}) : super(key: key);
+  const CallPage({
+    Key key,
+    @required this.channelName,
+    this.role = ClientRole.Broadcaster,
+    @required this.token,
+  }) : super(key: key);
 
   @override
   _CallPageState createState() => _CallPageState();
@@ -45,7 +53,6 @@ class _CallPageState extends State<CallPage> {
   }
 
   Future<void> initialize() async {
-
     if (APP_ID.isEmpty) {
       setState(() {
         _infoStrings.add(
@@ -66,7 +73,8 @@ class _CallPageState extends State<CallPage> {
     configuration.dimensions = VideoDimensions(1920, 1080);
     await _engine.setVideoEncoderConfiguration(configuration);
     // NOTE:  Just need the token
-    await _engine.joinChannel(Token, widget.channelName, null, 0);
+
+    await _engine.joinChannel(widget.token, widget.channelName, null, 0);
   }
 
   /// Create agora sdk instance and initialize
@@ -296,22 +304,26 @@ class _CallPageState extends State<CallPage> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: Colors.black,
-      body: Stack(
-        children: <Widget>[
-          _viewRows(),
-          Positioned(
-              top: 56,
-              left: 16,
-              child: Icon(
-                Icons.arrow_back_ios,
-                color: Colors.white,
-              )),
-          //Options
-          _toolbar(),
-        ],
-      ),
-    );
+    return AnnotatedRegion<SystemUiOverlayStyle>(
+        value: SystemUiOverlayStyle(
+          statusBarColor: Colors.transparent,
+        ),
+        child: Scaffold(
+          backgroundColor: Colors.black,
+          body: Stack(
+            children: <Widget>[
+              _viewRows(),
+              Positioned(
+                  top: 56,
+                  left: 16,
+                  child: Icon(
+                    Icons.arrow_back_ios,
+                    color: Colors.white,
+                  )),
+              //Options
+              _toolbar(),
+            ],
+          ),
+        ));
   }
 }
