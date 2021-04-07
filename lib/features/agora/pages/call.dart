@@ -7,6 +7,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
 import '../utils/settings.dart';
+import 'videocalls_two_views_custom.dart';
 
 class CallPage extends StatefulWidget {
   /// non-modifiable channel name of the page
@@ -32,7 +33,7 @@ class CallPage extends StatefulWidget {
 class _CallPageState extends State<CallPage> {
   final _users = <int>[];
   final _infoStrings = <String>[];
-  bool muted = false;
+  bool muted = false, defaultView = true;
   RtcEngine _engine;
 
   @override
@@ -155,17 +156,19 @@ class _CallPageState extends State<CallPage> {
     switch (views.length) {
       case 1:
         return Container(
-            child: Column(
-          children: <Widget>[_videoView(views[0])],
-        ));
+          child: Center(
+            child: Text('Waiting for another user...',
+                style: TextStyle(
+                  color: Colors.white,
+                  fontSize: 18.0,
+                )),
+          ),
+        );
       case 2:
-        return Container(
-            child: Column(
-          children: <Widget>[
-            _expandedVideoRow([views[0]]),
-            _expandedVideoRow([views[1]])
-          ],
-        ));
+        return VideoCallsTwoViewsCustom(
+          views: views,
+          showDefaultView: defaultView,
+        );
       case 3:
         return Container(
             child: Column(
@@ -237,7 +240,7 @@ class _CallPageState extends State<CallPage> {
     );
   }
 
-  /// Info panel to show logs
+  /// Info panel to show logs. This can help to debug the videocalls
   Widget _panel() {
     return Container(
       padding: const EdgeInsets.symmetric(vertical: 48),
@@ -313,17 +316,55 @@ class _CallPageState extends State<CallPage> {
           body: Stack(
             children: <Widget>[
               _viewRows(),
-              Positioned(
-                  top: 56,
-                  left: 16,
-                  child: Icon(
-                    Icons.arrow_back_ios,
-                    color: Colors.white,
-                  )),
+              // TODO: Change between views
+              _BackButton(),
+              _SwitchCameraViews(onTap: onTapSwitchCameraView),
               //Options
               _toolbar(),
             ],
           ),
+        ));
+  }
+
+  void onTapSwitchCameraView() {
+    setState(() {
+      defaultView = !defaultView;
+    });
+  }
+}
+
+class _SwitchCameraViews extends StatelessWidget {
+  const _SwitchCameraViews({Key key, this.onTap}) : super(key: key);
+
+  final GestureTapCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    return Positioned(
+        top: 56,
+        right: 16,
+        child: GestureDetector(
+            onTap: onTap,
+            child: Icon(
+              Icons.flip_camera_android_outlined,
+              color: Colors.white,
+            )));
+  }
+}
+
+class _BackButton extends StatelessWidget {
+  const _BackButton({
+    Key key,
+  }) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    return Positioned(
+        top: 56,
+        left: 16,
+        child: Icon(
+          Icons.arrow_back_ios,
+          color: Colors.white,
         ));
   }
 }
