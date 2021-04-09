@@ -5,10 +5,13 @@ import 'package:agora_rtc_engine/rtc_local_view.dart' as RtcLocalView;
 import 'package:agora_rtc_engine/rtc_remote_view.dart' as RtcRemoteView;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:get/get.dart';
 
 import '../utils/settings.dart';
 import 'videocalls_two_views_custom.dart';
 
+/// Use instead [VideoCallingPage]
+@deprecated
 class CallPage extends StatefulWidget {
   /// non-modifiable channel name of the page
   final String channelName;
@@ -22,19 +25,27 @@ class CallPage extends StatefulWidget {
   const CallPage({
     Key key,
     @required this.channelName,
-    this.role = ClientRole.Broadcaster,
     @required this.token,
+    this.role = ClientRole.Broadcaster,
   }) : super(key: key);
 
   @override
   _CallPageState createState() => _CallPageState();
 }
 
+@deprecated
 class _CallPageState extends State<CallPage> {
   final _users = <int>[];
   final _infoStrings = <String>[];
   bool muted = false, defaultView = true;
   RtcEngine _engine;
+
+  @override
+  void initState() {
+    super.initState();
+    // initialize agora sdk
+    initialize();
+  }
 
   @override
   void dispose() {
@@ -46,15 +57,8 @@ class _CallPageState extends State<CallPage> {
     super.dispose();
   }
 
-  @override
-  void initState() {
-    super.initState();
-    // initialize agora sdk
-    initialize();
-  }
-
   Future<void> initialize() async {
-    if (APP_ID.isEmpty) {
+    if (Settings.APP_ID.isEmpty) {
       setState(() {
         _infoStrings.add(
           'APP_ID missing, please provide your APP_ID in settings.dart',
@@ -66,14 +70,13 @@ class _CallPageState extends State<CallPage> {
 
     await _initAgoraRtcEngine();
 
-    _addAgoraEventHandlers();
+    addAgoraEventHandlers();
 
-    await _engine.enableWebSdkInteroperability(true);
-    //TODO: Configuration Video
+    // NOTE: This method is deprecated so don't should be used
+    // await _engine.enableWebSdkInteroperability(true);
     VideoEncoderConfiguration configuration = VideoEncoderConfiguration();
     configuration.dimensions = VideoDimensions(1920, 1080);
     await _engine.setVideoEncoderConfiguration(configuration);
-    // NOTE:  Just need the token
 
     await _engine.joinChannel(widget.token, widget.channelName, null, 0);
   }
@@ -81,14 +84,15 @@ class _CallPageState extends State<CallPage> {
   /// Create agora sdk instance and initialize
   Future<void> _initAgoraRtcEngine() async {
     // THE APP ID
-    _engine = await RtcEngine.create(APP_ID);
+    _engine = await RtcEngine.create(Settings.APP_ID);
     await _engine.enableVideo();
     await _engine.setChannelProfile(ChannelProfile.LiveBroadcasting);
     await _engine.setClientRole(widget.role);
   }
 
+  // NOTE: Use this method
   /// Add agora event handlers
-  void _addAgoraEventHandlers() {
+  void addAgoraEventHandlers() {
     _engine.setEventHandler(RtcEngineEventHandler(error: (code) {
       setState(() {
         final info = 'onError: $code';
@@ -135,13 +139,13 @@ class _CallPageState extends State<CallPage> {
   }
 
   /// Video view wrapper
+  @deprecated
   Widget _videoView(view) {
     return Expanded(child: Container(child: view));
   }
 
-  //TODO: You can change the view of the video
-  /// Video view row wrapper
-  Widget _expandedVideoRow(List<Widget> views) {
+  //NOTE: You can change the view of the video
+  Widget expandedVideoRow(List<Widget> views) {
     final wrappedViews = views.map<Widget>(_videoView).toList();
     return Expanded(
       child: Row(
@@ -158,34 +162,11 @@ class _CallPageState extends State<CallPage> {
         return Container(
           child: Center(
             child: Text('Waiting for another user...',
-                style: TextStyle(
-                  color: Colors.white,
-                  fontSize: 18.0,
-                )),
+                style: TextStyle(color: Colors.white, fontSize: 18.0)),
           ),
         );
       case 2:
-        return VideoCallsTwoViewsCustom(
-          views: views,
-          showDefaultView: defaultView,
-        );
-      case 3:
-        return Container(
-            child: Column(
-          children: <Widget>[
-            _expandedVideoRow(views.sublist(0, 2)),
-            _expandedVideoRow(views.sublist(2, 3))
-          ],
-        ));
-      case 4:
-        return Container(
-            child: Column(
-          children: <Widget>[
-            _expandedVideoRow(views.sublist(0, 2)),
-            _expandedVideoRow(views.sublist(2, 4))
-          ],
-        ));
-      default:
+        return VideoCallsTwoViewsCustom();
     }
     return Container();
   }
@@ -241,7 +222,7 @@ class _CallPageState extends State<CallPage> {
   }
 
   /// Info panel to show logs. This can help to debug the videocalls
-  Widget _panel() {
+  Widget panel() {
     return Container(
       padding: const EdgeInsets.symmetric(vertical: 48),
       alignment: Alignment.bottomCenter,
@@ -316,7 +297,6 @@ class _CallPageState extends State<CallPage> {
           body: Stack(
             children: <Widget>[
               _viewRows(),
-              // TODO: Change between views
               _BackButton(),
               _SwitchCameraViews(onTap: onTapSwitchCameraView),
               //Options
@@ -362,9 +342,12 @@ class _BackButton extends StatelessWidget {
     return Positioned(
         top: 56,
         left: 16,
-        child: Icon(
-          Icons.arrow_back_ios,
-          color: Colors.white,
+        child: IconButton(
+          icon: Icon(
+            Icons.arrow_back_ios,
+            color: Colors.white,
+          ),
+          onPressed: () => Get.back(),
         ));
   }
 }

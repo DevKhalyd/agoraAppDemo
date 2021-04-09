@@ -1,11 +1,10 @@
 import 'dart:convert';
 
+import 'package:demo_videocalling/core/routes.dart';
 import 'package:demo_videocalling/core/utils/utils_global.dart';
-import 'package:demo_videocalling/core/utils/utils_ui.dart';
-import 'package:demo_videocalling/features/agora/pages/call.dart';
+import 'package:demo_videocalling/features/agora/domain/entities/video_calling_model.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:permission_handler/permission_handler.dart';
 
 import '../../../../core/widgets/mini_widgets.dart';
 import '../../../login/domain/models/user_model.dart';
@@ -97,14 +96,15 @@ class _CustomListView extends StatelessWidget {
       token: bodyResponse['token'],
       channelName: bodyResponse['channel'],
     );
-    
-    await handleCameraAndMic(Permission.camera);
-    await handleCameraAndMic(Permission.microphone);
 
-    Get.to(CallPage(
-      channelName: resultMap.channelName,
-      token: resultMap.token,
-    ));
+    await UtilsGloabals.askForPermissions();
+
+    Get.toNamed(Routes.videocalling,
+        arguments: VideoCallingModel(
+          channelName: resultMap.channelName,
+          token: resultMap.token,
+        ));
+
   }
 }
 

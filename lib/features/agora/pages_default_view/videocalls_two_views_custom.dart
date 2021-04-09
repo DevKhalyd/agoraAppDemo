@@ -1,32 +1,32 @@
+import 'package:demo_videocalling/features/agora/presentation/getx/video_call_controller.dart';
 import 'package:flutter/material.dart';
+import 'package:get/state_manager.dart';
 
 class VideoCallsTwoViewsCustom extends StatelessWidget {
-  const VideoCallsTwoViewsCustom(
-      {Key key, @required this.views, this.showDefaultView = true})
-      : assert(views.length == 2),
-        super(key: key);
-
-  final List<Widget> views;
-
-  /// If
-  final bool showDefaultView;
+  const VideoCallsTwoViewsCustom({
+    Key key,
+  }) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
-    Widget currentUser = views[0];
-    Widget guestUser = views[1];
+    return GetBuilder<VideoCallingController>(builder: (c) {
+      final views = c.views;
 
-    if (!showDefaultView) {
-      currentUser = views[1];
-      guestUser = views[0];
-    }
+      Widget currentUser = views[0];
+      Widget guestUser = views[1];
 
-    return Stack(
-      children: [
-        _FullScreenUser(user: guestUser),
-        _MiniScreenUser(user: currentUser),
-      ],
-    );
+      if (!c.defaultView) {
+        currentUser = views[1];
+        guestUser = views[0];
+      }
+
+      return Stack(
+        children: [
+          _FullScreenUser(user: guestUser),
+          _MiniScreenUser(user: currentUser),
+        ],
+      );
+    });
   }
 }
 

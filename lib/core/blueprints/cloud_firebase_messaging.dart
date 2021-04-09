@@ -1,9 +1,10 @@
-import 'package:demo_videocalling/core/utils/utils_ui.dart';
-import 'package:demo_videocalling/features/agora/pages/call.dart';
-import 'package:demo_videocalling/features/dashboard/presentation/widgets/dashboard_body.dart';
-import 'package:firebase_messaging/firebase_messaging.dart';
+import 'package:demo_videocalling/core/utils/utils_global.dart';
+import 'package:demo_videocalling/features/agora/domain/entities/video_calling_model.dart';
 import 'package:get/get.dart';
-import 'package:permission_handler/permission_handler.dart';
+import 'package:firebase_messaging/firebase_messaging.dart';
+import 'package:demo_videocalling/features/dashboard/presentation/widgets/dashboard_body.dart';
+
+import '../routes.dart';
 
 final cloudMessaging = CloudMessagingUseCase();
 
@@ -13,7 +14,6 @@ class CloudMessagingUseCase {
   //https://stackoverflow.com/questions/65318728/the-getter-instance-isnt-defined-for-the-type-firebasemessaging
   final _messaging = FirebaseMessaging();
 
-  // TODO: Test this method in IOS
   /// Return `true` if the user  granted permission. Only ios
   Future<bool> requestPermissionNotification() async {
     try {
@@ -36,18 +36,20 @@ class CloudMessagingUseCase {
       );
 }
 
-// TODO: Check what return
 // App state: Background
+// ignore: missing_return
 Future _onBackgroundMessage(Map<String, dynamic> message) {
   print('onBackgroundMessage $message');
 }
 
 // App state:(?)
+// ignore: missing_return
 Future _onResume(Map<String, dynamic> message) {
   print('_onResume $message');
 }
 
 // App state: (?)
+// ignore: missing_return
 Future _onLaunch(Map<String, dynamic> message) {
   print('_onLaunch $message');
 }
@@ -63,11 +65,11 @@ Future _onMessage(Map<String, dynamic> message) async {
     channelName: useMAP['channel'],
   );
 
-  await handleCameraAndMic(Permission.camera);
-  await handleCameraAndMic(Permission.microphone);
+  await UtilsGloabals.askForPermissions();
 
-  Get.to(CallPage(
-    channelName: resultMap.channelName,
-    token: resultMap.token,
-  ));
+  Get.toNamed(Routes.videocalling,
+      arguments: VideoCallingModel(
+        channelName: resultMap.channelName,
+        token: resultMap.token,
+      ));
 }
